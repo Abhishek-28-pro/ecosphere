@@ -37,6 +37,7 @@ export async function POST(req: Request) {
     // Save tenant
     const data = db.getTenant(tenantId);
     if (!data) {
+      db.createTenant(tenant);
       // Create user
       const newUser = {
         id: `usr_${Date.now()}`,

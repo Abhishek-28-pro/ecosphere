@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import os from "os";
 import bcrypt from "bcryptjs";
 import {
   Tenant,
@@ -26,7 +27,15 @@ interface DatabaseSchema {
   auditLogs: AuditLog[];
 }
 
-const DB_FILE_PATH = path.join(process.cwd(), "data", "ecosphere-db.json");
+function getDbFilePath(): string {
+  // If running on Vercel, AWS Lambda, or production serverless, use writable /tmp
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NODE_ENV === "production") {
+    return path.join(os.tmpdir(), "ecosphere-db.json");
+  }
+  return path.join(process.cwd(), "data", "ecosphere-db.json");
+}
+
+const DB_FILE_PATH = getDbFilePath();
 
 const STOP_WORDS = new Set([
   "the", "is", "at", "which", "on", "a", "an", "and", "or", "in", "to", "for",
@@ -438,29 +447,40 @@ Custom root domains (@ apex) are supported via ALIAS or ANAME records.`,
 }
 
 export function loadDatabase(): DatabaseSchema {
+  const globalStore = (globalThis as any)._ecosphereDb as DatabaseSchema | undefined;
+  if (globalStore) return globalStore;
   if (cachedDb) return cachedDb;
 
-  ensureDataDirectory();
-  if (fs.existsSync(DB_FILE_PATH)) {
-    try {
+  try {
+    ensureDataDirectory();
+    if (fs.existsSync(DB_FILE_PATH)) {
       const raw = fs.readFileSync(DB_FILE_PATH, "utf-8");
-      cachedDb = JSON.parse(raw);
-      return cachedDb!;
-    } catch (err) {
-      console.error("Failed to read DB file, initializing seed data", err);
+      const parsed = JSON.parse(raw);
+      cachedDb = parsed;
+      (globalThis as any)._ecosphereDb = parsed;
+      return parsed;
     }
+  } catch (err) {
+    console.warn("Notice: could not read DB from disk, initializing seed data in memory:", err);
   }
 
   const initial = getInitialSeedData();
-  saveDatabase(initial);
   cachedDb = initial;
+  (globalThis as any)._ecosphereDb = initial;
+  saveDatabase(initial);
   return initial;
 }
 
 export function saveDatabase(data: DatabaseSchema): void {
-  ensureDataDirectory();
   cachedDb = data;
-  fs.writeFileSync(DB_FILE_PATH, JSON.stringify(data, null, 2), "utf-8");
+  (globalThis as any)._ecosphereDb = data;
+  try {
+    ensureDataDirectory();
+    fs.writeFileSync(DB_FILE_PATH, JSON.stringify(data, null, 2), "utf-8");
+  } catch (err) {
+    // In serverless / read-only filesystem environments (Vercel), preserve in-memory
+    console.warn("Notice: filesystem write unavailable in serverless, retained in memory:", err);
+  }
 }
 
 // Multi-tenant Query Helpers
@@ -469,6 +489,13 @@ export const db = {
   getTenant: (tenantId: string) => {
     const data = loadDatabase();
     return data.tenants.find((t) => t.id === tenantId) || null;
+  },
+
+  createTenant: (tenant: Tenant) => {
+    const data = loadDatabase();
+    data.tenants.push(tenant);
+    saveDatabase(data);
+    return tenant;
   },
 
   // User Queries
