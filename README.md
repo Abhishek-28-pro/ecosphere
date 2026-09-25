@@ -255,8 +255,8 @@ Follow this script to record a concise screen recording covering the five evalua
 ### Quick Start
 ```bash
 # 1. Clone repository
-git clone https://github.com/your-org/ecosphere-ai.git
-cd DASH
+git clone https://github.com/Abhishek-28-pro/ecosphere.git
+cd ecosphere
 
 # 2. Install dependencies
 npm install
