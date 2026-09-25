@@ -26,6 +26,9 @@ interface HeaderNavProps {
   currentRole: "admin" | "agent" | "customer";
   setCurrentRole: (role: "admin" | "agent" | "customer") => void;
   tenantName: string;
+  onOpenAuthModal?: () => void;
+  currentUser?: { name: string; email: string; role: string } | null;
+  onSignOut?: () => void;
 }
 
 export const HeaderNav: React.FC<HeaderNavProps> = ({
@@ -34,6 +37,9 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   currentRole,
   setCurrentRole,
   tenantName,
+  onOpenAuthModal,
+  currentUser,
+  onSignOut,
 }) => {
   return (
     <header className="sticky top-0 z-50 w-full px-4 pt-3 pb-2 backdrop-blur-md">
@@ -132,6 +138,30 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
 
         {/* Persona & Role Switcher */}
         <div className="flex items-center gap-2">
+          {currentUser ? (
+            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200/90 rounded-xl px-2.5 py-1">
+              <div className="text-right hidden sm:block">
+                <p className="text-[11px] font-bold text-slate-900 leading-tight">{currentUser.name}</p>
+                <p className="text-[10px] text-slate-500 capitalize">{currentUser.role}</p>
+              </div>
+              <button
+                onClick={onSignOut}
+                className="text-[11px] font-semibold text-rose-600 hover:text-rose-800 px-2 py-0.5 rounded hover:bg-rose-50 transition-colors"
+                title="Sign out"
+              >
+                Sign out
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={onOpenAuthModal}
+              className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-3.5 py-1.5 rounded-full shadow-2xs transition-all"
+            >
+              <UserCheck className="w-3.5 h-3.5" />
+              Sign in
+            </button>
+          )}
+
           <div className="hidden lg:flex items-center gap-1 bg-slate-50 border border-slate-200/80 rounded-lg p-1 text-[11px]">
             <span className="text-slate-400 pl-1 font-medium flex items-center gap-1">
               <UserCheck className="w-3 h-3 text-slate-500" />

@@ -8,6 +8,7 @@ import { AgentInbox } from "@/components/AgentInbox";
 import { ManagerDashboard } from "@/components/ManagerDashboard";
 import { KnowledgeBaseManager } from "@/components/KnowledgeBaseManager";
 import { ArchitectureModal } from "@/components/ArchitectureModal";
+import { AuthModal } from "@/components/AuthModal";
 import { MessageSquare, X } from "lucide-react";
 
 export default function Home() {
@@ -15,6 +16,21 @@ export default function Home() {
   const [currentRole, setCurrentRole] = useState<"admin" | "agent" | "customer">("customer");
   const [isFloatingWidgetOpen, setIsFloatingWidgetOpen] = useState(false);
   const [activeTicketIdForInbox, setActiveTicketIdForInbox] = useState<string | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ id: string; name: string; email: string; role: "admin" | "agent" } | null>(null);
+
+  React.useEffect(() => {
+    try {
+      const stored = localStorage.getItem("ecosphere_user");
+      if (stored) {
+        const u = JSON.parse(stored);
+        setCurrentUser(u);
+        setCurrentRole(u.role);
+      }
+    } catch (e) {
+      console.warn("Could not parse stored session:", e);
+    }
+  }, []);
 
   const handleRoleChange = (role: "admin" | "agent" | "customer") => {
     setCurrentRole(role);
@@ -25,6 +41,24 @@ export default function Home() {
     } else {
       setActiveTab("widget");
     }
+  };
+
+  const handleLoginSuccess = (user: { id: string; name: string; email: string; role: "admin" | "agent" }) => {
+    setCurrentUser(user);
+    setCurrentRole(user.role);
+    if (user.role === "admin") {
+      setActiveTab("dashboard");
+    } else {
+      setActiveTab("inbox");
+    }
+  };
+
+  const handleSignOut = () => {
+    localStorage.removeItem("ecosphere_token");
+    localStorage.removeItem("ecosphere_user");
+    setCurrentUser(null);
+    setCurrentRole("customer");
+    setActiveTab("landing");
   };
 
   const handleOpenTicketInInbox = (ticketId: string) => {
@@ -43,6 +77,16 @@ export default function Home() {
         currentRole={currentRole}
         setCurrentRole={handleRoleChange}
         tenantName="Acme Cloud Technologies"
+        onOpenAuthModal={() => setIsAuthModalOpen(true)}
+        currentUser={currentUser}
+        onSignOut={handleSignOut}
+      />
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
       />
 
       {/* Main Content Area */}
@@ -51,6 +95,7 @@ export default function Home() {
           <HeroLanding
             onNavigate={(tab) => setActiveTab(tab)}
             onOpenWidget={() => setActiveTab("widget")}
+            onOpenAuthModal={() => setIsAuthModalOpen(true)}
           />
         )}
 

@@ -24,6 +24,7 @@ data/ecosphere-db.json
 *.db
 *.sqlite
 *.sqlite3
+scratch/
 
 # Debug & Log files
 npm-debug.log*

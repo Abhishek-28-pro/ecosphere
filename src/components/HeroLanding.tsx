@@ -18,11 +18,13 @@ import { ActiveTab } from "./HeaderNav";
 interface HeroLandingProps {
   onNavigate: (tab: ActiveTab) => void;
   onOpenWidget: () => void;
+  onOpenAuthModal?: () => void;
 }
 
 export const HeroLanding: React.FC<HeroLandingProps> = ({
   onNavigate,
   onOpenWidget,
+  onOpenAuthModal,
 }) => {
   // CMS / Configurable state per Section 6
   const [headline] = useState("AI customer experience that never sleeps");
@@ -86,13 +88,13 @@ export const HeroLanding: React.FC<HeroLandingProps> = ({
           {/* Right auth CTAs */}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => onNavigate("inbox")}
-              className="text-xs font-medium text-slate-600 hover:text-slate-900 transition-colors px-2 py-1"
+              onClick={onOpenAuthModal || (() => onNavigate("inbox"))}
+              className="text-xs font-semibold text-slate-700 hover:text-indigo-600 transition-colors px-2 py-1"
             >
               Sign in
             </button>
             <button
-              onClick={() => onNavigate("dashboard")}
+              onClick={onOpenAuthModal || (() => onNavigate("dashboard"))}
               className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-sm hover:shadow transition-all"
             >
               Sign up
