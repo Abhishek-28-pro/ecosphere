@@ -8,6 +8,8 @@
 [![Tests](https://img.shields.io/badge/Tests-17%20Passed-emerald)](https://github.com/)
 [![Security](https://img.shields.io/badge/Security-SEC--001%20Isolated-indigo)](https://github.com/)
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FAbhishek-28-pro%2Fecosphere&env=GEMINI_API_KEY,JWT_ACCESS_SECRET,JWT_REFRESH_SECRET,AI_MODEL&envDescription=Backend-only%20environment%20variables%20for%20EcoSphere.AI)
+
 ---
 
 ## 📋 Table of Contents
